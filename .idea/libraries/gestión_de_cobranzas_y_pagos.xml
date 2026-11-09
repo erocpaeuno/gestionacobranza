@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="gestión-de-cobranzas-y-pagos">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/gestión-de-cobranzas-y-pagos.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

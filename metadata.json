@@ -1,0 +1,6 @@
+{
+  "name": "Gestión de Cobranzas y Pagos",
+  "description": "Aplicación móvil para gestión de cobro de cuotas, amortizaciones, cancelaciones de préstamos, impresión de tickets y envío de recibos por WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

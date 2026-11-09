@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: gestion-cobranzas-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev
+    startCommand: npm run server
+    healthCheckPath: /api/status
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_DATABASE_URL
+        sync: false
+      - key: APP_SESSION_SECRET
+        sync: false

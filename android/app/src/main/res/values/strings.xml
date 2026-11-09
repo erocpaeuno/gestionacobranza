@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gestión de Cobranzas y Pagos</string>
+    <string name="title_activity_main">Gestión de Cobranzas y Pagos</string>
+    <string name="package_name">com.example.gestioncobranzas</string>
+    <string name="custom_url_scheme">com.example.gestioncobranzas</string>
+</resources>
