@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { pool, testDbConnection, RowDataPacket } from './db';
 import type { DatabaseConnection } from './db';
 import bcrypt from 'bcryptjs';
-import { authenticateRequest, createSessionToken, hasPermission, isCompanyAdmin } from './auth';
+import { authenticateRequest, optionalAuthenticateRequest, createSessionToken, hasPermission, isCompanyAdmin } from './auth';
 
 export const apiRouter = Router();
 
@@ -109,10 +109,8 @@ apiRouter.post('/login', async (req, res) => {
   }
 });
 
-apiRouter.use(authenticateRequest);
-
-// 1.2 Estado de conexión con Supabase PostgreSQL
-apiRouter.get('/status', async (req, res) => {
+// 1.2 Estado de conexión con Supabase PostgreSQL (Healthcheck para Render / Monitor de Conexión)
+apiRouter.get('/status', optionalAuthenticateRequest, async (req, res) => {
   try {
     const companyId = req.auth && isCompanyAdmin(req.auth) ? req.auth.companyId : undefined;
     const status = await testDbConnection(companyId);
@@ -126,6 +124,8 @@ apiRouter.get('/status', async (req, res) => {
     });
   }
 });
+
+apiRouter.use(authenticateRequest);
 
 // 1.2 Listado de Usuarios (para filtros y asignación)
 apiRouter.get('/usuarios', async (req, res) => {

@@ -76,14 +76,9 @@ export function isCompanyAdmin(auth: AuthContext): boolean {
   return /admin/i.test(auth.roleName);
 }
 
-export async function authenticateRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const authorization = req.header('authorization') || '';
-  const token = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
-  const claims = token ? readSessionToken(token) : null;
-  if (!claims) {
-    res.status(401).json({ success: false, error: 'Sesión inválida o vencida. Inicia sesión nuevamente.' });
-    return;
-  }
+async function loadAuthContext(token: string): Promise<AuthContext | null> {
+  const claims = readSessionToken(token);
+  if (!claims) return null;
 
   let connection: DatabaseConnection | undefined;
   try {
@@ -102,10 +97,7 @@ export async function authenticateRequest(req: Request, res: Response, next: Nex
       [claims.userId, claims.companyId]
     );
     const user = rows[0];
-    if (!user) {
-      res.status(401).json({ success: false, error: 'La cuenta o empresa está inactiva. Inicia sesión nuevamente.' });
-      return;
-    }
+    if (!user) return null;
 
     let permissions: unknown = user.permisos_modulos;
     if (typeof permissions === 'string') {
@@ -116,7 +108,7 @@ export async function authenticateRequest(req: Request, res: Response, next: Nex
       }
     }
 
-    req.auth = {
+    return {
       userId: Number(user.id),
       companyId: Number(user.empresa_id),
       roleId: Number(user.rol_id),
@@ -126,10 +118,46 @@ export async function authenticateRequest(req: Request, res: Response, next: Nex
         ? permissions.filter((permission): permission is string => typeof permission === 'string')
         : [],
     };
-    next();
-  } catch (error) {
-    next(error);
   } finally {
     connection?.release();
   }
+}
+
+export async function authenticateRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const authorization = req.header('authorization') || '';
+  const token = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
+  if (!token) {
+    res.status(401).json({ success: false, error: 'Sesión inválida o vencida. Inicia sesión nuevamente.' });
+    return;
+  }
+
+  try {
+    const auth = await loadAuthContext(token);
+    if (!auth) {
+      res.status(401).json({ success: false, error: 'La cuenta o empresa está inactiva o la sesión venció. Inicia sesión nuevamente.' });
+      return;
+    }
+    req.auth = auth;
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function optionalAuthenticateRequest(req: Request, _res: Response, next: NextFunction): Promise<void> {
+  const authorization = req.header('authorization') || '';
+  const token = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const auth = await loadAuthContext(token);
+    if (auth) {
+      req.auth = auth;
+    }
+  } catch {
+    // Si hay error de red o base de datos temporal, continuar como no autenticado
+  }
+  next();
 }
