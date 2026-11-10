@@ -9,7 +9,7 @@
     "db:test": "tsx server/test-connection.ts",
     "build": "vite build",
     "build:android": "vite build && cap sync android",
-    "build:apk": "build-apk.bat",
+    "build:apk": "powershell -ExecutionPolicy Bypass -File ./scripts/build-apk.ps1",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
